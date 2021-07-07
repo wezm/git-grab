@@ -14,8 +14,8 @@ pub fn grab(home: &Path, url: OsString) -> Result<(), Error> {
         ParseError::RelativeUrlWithoutBase => {
             if looks_like_ssh_url(str) {
                 // Might be an ssh style URL like git@github.com:wezm/grab.git
-                let newstr =
-                    normalise_ssh_url(str).ok_or_else(|| format!("unable to normalise '{}'", str))?;
+                let newstr = normalise_ssh_url(str)
+                    .ok_or_else(|| format!("unable to normalise '{}'", str))?;
                 newstr.parse().map_err(Error::from)
             } else if str.contains('.') {
                 // might be a URL without a scheme like github.com/wezm/grab
@@ -23,12 +23,11 @@ pub fn grab(home: &Path, url: OsString) -> Result<(), Error> {
                 newstr.push_str(HTTPS);
                 newstr.push_str(str);
                 newstr.parse().map_err(Error::from)
-            }
-            else {
+            } else {
                 Err(format!("'{}': {}", str, err).into())
             }
         }
-        _ => Err(format!("'{}': {}", str, err).into())
+        _ => Err(format!("'{}': {}", str, err).into()),
     })?;
 
     let dest_path = clone_path(home, &url)?;
@@ -71,7 +70,7 @@ fn clone_path(home: &Path, url: &Url) -> Result<PathBuf, Error> {
 
 fn looks_like_ssh_url(url: &str) -> bool {
     // if there's an @ before the : maybe it's an ssh url
-    url.split_once(':')
+    split_once(url, ':')
         .map(|(before, _after)| before.contains('@'))
         .unwrap_or(false)
 }
@@ -87,6 +86,12 @@ fn normalise_ssh_url(url: &str) -> Option<String> {
         2 => Some(format!("ssh://{}:{}/{}", p.next()?, p.next()?, p.next()?)),
         _ => None,
     }
+}
+
+// Use std lib when CI builds are on Rust >= 1.52
+fn split_once(s: &str, pat: char) -> Option<(&str, &str)> {
+    let (before, after) = s.split_at(s.find(pat)?);
+    Some((before, &after[1..]))
 }
 
 #[cfg(test)]
@@ -115,6 +120,16 @@ mod tests {
         );
 
         assert!(normalise_ssh_url("github.com/wezm/grab.git").is_none());
+    }
+
+    #[test]
+    fn test_split_once() {
+        assert_eq!(split_once("a:b", ':'), Some(("a", "b")));
+        assert_eq!(split_once(":b", ':'), Some(("", "b")));
+        assert_eq!(split_once("a:", ':'), Some(("a", "")));
+        assert_eq!(split_once(":", ':'), Some(("", "")));
+        assert_eq!(split_once("abc", ':'), None);
+        assert_eq!(split_once("", ':'), None);
     }
 
     /*
