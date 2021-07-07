@@ -1,6 +1,6 @@
 env:
   PATH: "$HOME/.cargo/bin:$PATH"
-  RUST_VERSION: '1.53.0' # Needs to match FreeBSD version
+  RUST_VERSION: '1.51.0' # Needs to match FreeBSD version
 
 task:
   name: Build (Debian Linux)
