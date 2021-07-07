@@ -1,8 +1,12 @@
 [package]
 name = "grab"
+authors = [
+  "Wesley Moore <wes@wezm.net>"
+]
 version = "0.1.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+home = "0.5.3"
+pico-args = "0.4.2"
+url = "2"
