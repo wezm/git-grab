@@ -1,15 +1,14 @@
 env:
   PATH: "$HOME/.cargo/bin:$PATH"
   RUST_VERSION: '1.51.0' # Needs to match FreeBSD version
+  AWS_ACCESS_KEY_ID: ENCRYPTED[d93099def908e5d9813218ea0c911b6e4042d8791c17b4dcd7758c16ef2da71a43683c8d3c29cf09b41a42415cc26c27]
+  AWS_SECRET_ACCESS_KEY: ENCRYPTED[ac2928f856b4b3c90541ec007ab0ef88ea7e85e96fc8095dacfeebabd7ab134e3eaa3469464d54f2da0697ca0c144b3a]
 
 task:
   name: Build (Debian Linux)
   container:
     image: debian:10-slim
     cpu: 4
-  environment:
-    AWS_ACCESS_KEY_ID: ENCRYPTED[47c5a661185faab3f5dfb825bda19470532f6098dedf8a4847219bdbd0ad5bc9d7413543390f6feb17c1c2c0b1e4f3bc]
-    AWS_SECRET_ACCESS_KEY: ENCRYPTED[67dc1d900976594692736ddf12e4cd4db743458315b00acc9bd7f52c0812c00a2d63e654a66ff96196facea0542b7719]
   install_script:
     - apt-get update && apt-get install -y --no-install-recommends git ca-certificates curl gcc libc6-dev musl-tools
     - curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION}
@@ -33,9 +32,6 @@ task:
   freebsd_instance:
     image_family: freebsd-13-0
     cpu: 4
-  environment:
-    AWS_ACCESS_KEY_ID: ENCRYPTED[47c5a661185faab3f5dfb825bda19470532f6098dedf8a4847219bdbd0ad5bc9d7413543390f6feb17c1c2c0b1e4f3bc]
-    AWS_SECRET_ACCESS_KEY: ENCRYPTED[67dc1d900976594692736ddf12e4cd4db743458315b00acc9bd7f52c0812c00a2d63e654a66ff96196facea0542b7719]
   install_script:
     - pkg install -y git-lite rust
     - fetch -o - https://releases.wezm.net/upload-to-s3/0.1.10/upload-to-s3-0.1.10-amd64-unknown-freebsd.tar.gz | tar xzf - -C /usr/local/bin
@@ -55,9 +51,6 @@ task:
   name: Build (Mac OS)
   osx_instance:
     image: catalina-base
-  environment:
-    AWS_ACCESS_KEY_ID: ENCRYPTED[47c5a661185faab3f5dfb825bda19470532f6098dedf8a4847219bdbd0ad5bc9d7413543390f6feb17c1c2c0b1e4f3bc]
-    AWS_SECRET_ACCESS_KEY: ENCRYPTED[67dc1d900976594692736ddf12e4cd4db743458315b00acc9bd7f52c0812c00a2d63e654a66ff96196facea0542b7719]
   install_script:
     - curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION}
     - curl -L https://releases.wezm.net/upload-to-s3/0.1.10/upload-to-s3-0.1.10-x86_64-apple-darwin.tar.gz | tar xzf - -C /usr/local/bin
@@ -79,8 +72,6 @@ task:
     image: cirrusci/windowsservercore:cmake
     cpu: 4
   environment:
-    AWS_ACCESS_KEY_ID: ENCRYPTED[47c5a661185faab3f5dfb825bda19470532f6098dedf8a4847219bdbd0ad5bc9d7413543390f6feb17c1c2c0b1e4f3bc]
-    AWS_SECRET_ACCESS_KEY: ENCRYPTED[67dc1d900976594692736ddf12e4cd4db743458315b00acc9bd7f52c0812c00a2d63e654a66ff96196facea0542b7719]
     CIRRUS_SHELL: powershell
   install_script:
     - Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
@@ -89,7 +80,7 @@ task:
     - Expand-Archive upload-to-s3.zip -DestinationPath .
     - git fetch --tags
   test_script:
-    - cargo test
+    - ~\.cargo\bin\cargo test
   publish_script: |
     try {
       $tag=$(git describe --exact-match HEAD 2>$null)
