@@ -75,7 +75,7 @@ task:
     CIRRUS_SHELL: powershell
   install_script:
     - Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
-    - .\rustup-init -y --profile minimal --default-toolchain ${RUST_VERSION}
+    - .\rustup-init -y --profile minimal --default-toolchain $env:RUST_VERSION
     - Invoke-WebRequest https://releases.wezm.net/upload-to-s3/0.1.10/upload-to-s3-0.1.10-x86_64-pc-windows-msvc.zip -OutFile upload-to-s3.zip
     - Expand-Archive upload-to-s3.zip -DestinationPath .
     - git fetch --tags
