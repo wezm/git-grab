@@ -8,12 +8,17 @@ use crate::Error;
 
 const HTTPS: &str = "https://";
 
-pub fn grab(home: &Path, url: OsString) -> Result<(), Error> {
+pub fn grab(home: &Path, url: OsString, dry_run: bool) -> Result<(), Error> {
     let str = url.to_str().ok_or_else(|| "invalid url")?;
     let url: Url = parse_url(str)?;
 
     let dest_path = clone_path(home, &url)?;
     println!("Grab {} to {}", url, dest_path.display());
+
+    if dry_run {
+        return Ok(());
+    }
+
     fs::create_dir_all(&dest_path)?;
     let status = clone(&url, &dest_path)?;
     status
