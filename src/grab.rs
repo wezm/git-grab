@@ -105,6 +105,7 @@ mod tests {
         // true
         assert!(looks_like_ssh_url("git@github.com:wezm/grab.git"));
         assert!(looks_like_ssh_url("git@github.com:2222:wezm/grab.git"));
+        assert!(looks_like_ssh_url("git@git.sr.ht:~wezm/lobsters"));
 
         // false
         assert!(!looks_like_ssh_url("https://github.com/wezm/grab.git"));
