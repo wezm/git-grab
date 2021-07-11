@@ -17,12 +17,7 @@
   <a href="https://crates.io/crates/git-grab">
     <img src="https://img.shields.io/crates/v/git-grab.svg" alt="Version">
   </a>
-  <a href="https://github.com/wezm/git-grab/blob/master/LICENSE-MIT">
-    <img src="https://img.shields.io/crates/l/git-grab.svg" alt="License">
-  </a>
-  <a href="https://github.com/wezm/git-grab/blob/master/LICENSE-APACHE">
-    <img src="https://img.shields.io/crates/l/git-grab.svg" alt="License">
-  </a>
+  <img src="https://img.shields.io/crates/l/git-grab.svg" alt="License">
 </div>
 
 <br>
