@@ -21,10 +21,10 @@ task:
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
       cargo build --release --target x86_64-unknown-linux-musl
-      tarball="grab-${tag}-x86_64-unknown-linux-musl.tar.gz"
-      strip target/x86_64-unknown-linux-musl/release/grab
-      tar zcf "$tarball" -C target/x86_64-unknown-linux-musl/release grab
-      ~/bin/upload-to-s3 -b releases.wezm.net "$tarball" "grab/$tag/$tarball"
+      tarball="git-grab-${tag}-x86_64-unknown-linux-musl.tar.gz"
+      strip target/x86_64-unknown-linux-musl/release/git-grab
+      tar zcf "$tarball" -C target/x86_64-unknown-linux-musl/release git-grab
+      ~/bin/upload-to-s3 -b releases.wezm.net "$tarball" "git-grab/$tag/$tarball"
     fi
 
 task:
@@ -41,10 +41,10 @@ task:
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
       cargo build --release
-      tarball="grab-${tag}-amd64-unknown-freebsd.tar.gz"
-      strip target/release/grab
-      tar zcf "$tarball" -C target/release grab
-      upload-to-s3 -b releases.wezm.net "$tarball" "grab/$tag/$tarball"
+      tarball="git-grab-${tag}-amd64-unknown-freebsd.tar.gz"
+      strip target/release/git-grab
+      tar zcf "$tarball" -C target/release git-grab
+      upload-to-s3 -b releases.wezm.net "$tarball" "git-grab/$tag/$tarball"
     fi
 
 task:
@@ -60,10 +60,10 @@ task:
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
       cargo build --release
-      tarball="grab-${tag}-x86_64-apple-darwin.tar.gz"
-      strip target/release/grab
-      tar zcf "$tarball" -C target/release grab
-      upload-to-s3 -b releases.wezm.net "$tarball" "grab/$tag/$tarball"
+      tarball="git-grab-${tag}-x86_64-apple-darwin.tar.gz"
+      strip target/release/git-grab
+      tar zcf "$tarball" -C target/release git-grab
+      upload-to-s3 -b releases.wezm.net "$tarball" "git-grab/$tag/$tarball"
     fi
 
 task:
@@ -89,10 +89,10 @@ task:
     }
     if ( $tag.Length -gt 0 ) {
       ~\.cargo\bin\cargo build --release
-      $tarball="grab-$tag-x86_64-pc-windows-msvc.zip"
+      $tarball="git-grab-$tag-x86_64-pc-windows-msvc.zip"
       cd target\release
-      strip grab.exe
-      Compress-Archive .\grab.exe "$tarball"
+      strip git-grab.exe
+      Compress-Archive .\git-grab.exe "$tarball"
       cd ..\..
-      .\upload-to-s3 -b releases.wezm.net "target\release\$tarball" "grab/$tag/$tarball"
+      .\upload-to-s3 -b releases.wezm.net "target\release\$tarball" "git-grab/$tag/$tarball"
     }
