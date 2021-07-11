@@ -1,7 +1,7 @@
 mod args;
 mod grab;
 
-use std::{env, process};
+use std::process;
 
 use crate::args::parse_args;
 use crate::grab::grab;
@@ -39,7 +39,7 @@ fn try_main() -> Result<i32, Error> {
     }
 
     let mut success = true;
-    for url in env::args_os().skip(1) {
+    for url in config.grab_urls {
         match grab(&config.home, url) {
             Ok(()) => {}
             Err(err) => {
