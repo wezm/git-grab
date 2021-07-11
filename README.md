@@ -58,7 +58,7 @@ Download
 
 Pre-compiled binaries are available for a number of platforms.
 
-* [FreeBSD 12.1 amd64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-amd64-unknown-freebsd.tar.gz)
+* [FreeBSD 13 amd64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-amd64-unknown-freebsd.tar.gz)
 * [Linux x86\_64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-x86_64-unknown-linux-musl.tar.gz)
 * [MacOS x86\_64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-x86_64-apple-darwin.tar.gz)
 * [Windows x86\_64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-x86_64-pc-windows-msvc.zip)
