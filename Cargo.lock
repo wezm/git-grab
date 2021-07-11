@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "grab"
+name = "git-grab"
 version = "0.1.0"
 dependencies = [
  "home",

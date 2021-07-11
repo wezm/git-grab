@@ -1,5 +1,5 @@
 [package]
-name = "grab"
+name = "git-grab"
 authors = [
   "Wesley Moore <wes@wezm.net>"
 ]
