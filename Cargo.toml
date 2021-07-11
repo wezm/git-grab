@@ -6,6 +6,16 @@ authors = [
 version = "0.1.1"
 edition = "2018"
 
+homepage = "https://github.com/wezm/git-grab"
+repository = "https://github.com/wezm/git-grab.git"
+
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+
+description = "A small tool to clone git repositories to a standard location, ordered by domain name and path"
+keywords = ["git", "cli"]
+categories = ["command-line-utilities", "development-tools"]
+
 [dependencies]
 home = "0.5.3"
 pico-args = "0.4.2"
