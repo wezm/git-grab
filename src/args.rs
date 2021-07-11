@@ -32,7 +32,7 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
                 })
             })
         })
-        .ok_or_else(|| String::from("unable to determine home directory"))?;
+        .ok_or_else(|| "unable to determine home directory")?;
 
     Ok(Some(Config {
         dry_run,

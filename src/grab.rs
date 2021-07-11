@@ -9,7 +9,7 @@ use crate::Error;
 const HTTPS: &str = "https://";
 
 pub fn grab(home: &Path, url: OsString) -> Result<(), Error> {
-    let str = url.to_str().ok_or_else(|| String::from("invalid url"))?;
+    let str = url.to_str().ok_or_else(|| "invalid url")?;
     let url: Url = str.parse().or_else(|err| match err {
         ParseError::RelativeUrlWithoutBase => {
             if looks_like_ssh_url(str) {
@@ -71,8 +71,7 @@ fn clone_path(home: &Path, url: &Url) -> Result<PathBuf, Error> {
 fn looks_like_ssh_url(url: &str) -> bool {
     // if there's an @ before the : maybe it's an ssh url
     split_once(url, ':')
-        .map(|(before, _after)| before.contains('@'))
-        .unwrap_or(false)
+        .map_or(false, |(before, _after)| before.contains('@'))
 }
 
 fn normalise_ssh_url(url: &str) -> Option<String> {
