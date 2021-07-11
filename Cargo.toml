@@ -3,7 +3,7 @@ name = "git-grab"
 authors = [
   "Wesley Moore <wes@wezm.net>"
 ]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 
 [dependencies]
