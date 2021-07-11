@@ -58,11 +58,11 @@ pub fn print_usage() -> Result<Option<Config>, Error> {
     println!(
         "{}
 
-Clone a git repository into a standard location organised by domain.
+Clone a git repository into a standard location organised by domain and path.
 
 E.g. https://github.com/wezm/git-grab.git would be cloned to:
 
-    $GRAB_HOME/github.com/wezm/grab
+    $GRAB_HOME/github.com/wezm/git-grab
 
 USAGE:
     git grab [OPTIONS] [URL]...
@@ -77,7 +77,7 @@ OPTIONS:
     -h, --help
             Prints help information
 
-        --home [default: ~/src]
+        --home [default: ~/src or $GRAB_HOME]
             The directory to use as \"grab home\", where the URLs will be
             cloned into. Overrides the GRAB_HOME environment variable if
             set.
