@@ -12,28 +12,28 @@
 <br>
 
 <div align="center">
-  <a href="https://cirrus-ci.com/github/wezm/grab">
-    <img src="https://api.cirrus-ci.com/github/wezm/grab.svg" alt="Build Status"></a>
-  <a href="https://crates.io/crates/grab">
-    <img src="https://img.shields.io/crates/v/grab.svg" alt="Version">
+  <a href="https://cirrus-ci.com/github/wezm/git-grab">
+    <img src="https://api.cirrus-ci.com/github/wezm/git-grab.svg" alt="Build Status"></a>
+  <a href="https://crates.io/crates/git-grab">
+    <img src="https://img.shields.io/crates/v/git-grab.svg" alt="Version">
   </a>
-  <a href="https://github.com/wezm/grab/blob/master/LICENSE-MIT">
-    <img src="https://img.shields.io/crates/l/grab.svg" alt="License">
+  <a href="https://github.com/wezm/git-grab/blob/master/LICENSE-MIT">
+    <img src="https://img.shields.io/crates/l/git-grab.svg" alt="License">
   </a>
-  <a href="https://github.com/wezm/grab/blob/master/LICENSE-APACHE">
-    <img src="https://img.shields.io/crates/l/grab.svg" alt="License">
+  <a href="https://github.com/wezm/git-grab/blob/master/LICENSE-APACHE">
+    <img src="https://img.shields.io/crates/l/git-grab.svg" alt="License">
   </a>
 </div>
 
 <br>
 
-Grab clones the repo into `$GRAB_HOME/github.com/wezm/grab` where `GRAB_HOME`
+Grab clones the repo into `$GRAB_HOME/github.com/wezm/git-grab` where `GRAB_HOME`
 defaults to `~/src` if not set or supplied via the `--home` argument. For
 example:
 
-    $ git grab github.com/wezm/grab
-    Grab https://github.com/wezm/grab to /home/wmoore/src/github.com/wezm/grab
-    Cloning into '/home/wmoore/src/github.com/wezm/grab'...
+    $ git grab github.com/wezm/git-grab
+    Grab https://github.com/wezm/git-grab to /home/wmoore/src/github.com/wezm/git-grab
+    Cloning into '/home/wmoore/src/github.com/wezm/git-grab'...
     remote: Enumerating objects: 30, done.
     remote: Counting objects: 100% (30/30), done.
     remote: Compressing objects: 100% (20/20), done.
@@ -45,7 +45,7 @@ example:
     /home/wmoore/src
     └── github.com
        └── wezm
-          └── grab
+          └── git-grab
              ├── Cargo.lock
              ├── Cargo.toml
              └── src
@@ -58,27 +58,27 @@ Download
 
 Pre-compiled binaries are available for a number of platforms.
 
-* [FreeBSD 12.1 amd64](https://releases.wezm.net/grab/0.1.0/grab-0.1.0-amd64-unknown-freebsd.tar.gz)
-* [Linux x86\_64](https://releases.wezm.net/grab/0.1.0/grab-0.1.0-x86_64-unknown-linux-musl.tar.gz)
-* [MacOS x86\_64](https://releases.wezm.net/grab/0.1.0/grab-0.1.0-x86_64-apple-darwin.tar.gz)
-* [Windows x86\_64](https://releases.wezm.net/grab/0.1.0/grab-0.1.0-x86_64-pc-windows-msvc.zip)
+* [FreeBSD 12.1 amd64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-amd64-unknown-freebsd.tar.gz)
+* [Linux x86\_64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-x86_64-unknown-linux-musl.tar.gz)
+* [MacOS x86\_64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-x86_64-apple-darwin.tar.gz)
+* [Windows x86\_64](https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-x86_64-pc-windows-msvc.zip)
 
 Example to download and extract a binary:
 
-    curl https://releases.wezm.net/grab/0.1.0/grab-0.1.0-x86_64-unknown-linux-musl.tar.gz | tar zxf -
+    curl https://releases.wezm.net/git-grab/0.1.0/git-grab-0.1.0-x86_64-unknown-linux-musl.tar.gz | tar zxf -
 
 Usage
 -----
 
 ```
 USAGE:
-    grab [OPTIONS] [URL]...
+    git grab [OPTIONS] [URL]...
 
 ARGS:
     <URL>...
         One or more git URLs to clone. Any URL accepted by `git` is valid.
         In addition, URLs without a scheme such as
-        github.com/wezm/grab are also accepted.
+        github.com/wezm/git-grab are also accepted.
 
 OPTIONS:
     -h, --help
@@ -105,17 +105,17 @@ Build from Source
 
 **Minimum Supported Rust Version:** 1.51.0
 
-`grab` is implemented in Rust. See the Rust website for [instructions on
+`git-grab` is implemented in Rust. See the Rust website for [instructions on
 installing the toolchain][rustup].
 
 ### From Git Checkout or Release Tarball
 
 Build the binary with `cargo build --release --locked`. The binary will be in
-`target/release/grab`.
+`target/release/git-grab`.
 
 ### From crates.io
 
-`cargo install grab`
+`cargo install git-grab`
 
 Credits
 -------

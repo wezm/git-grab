@@ -60,12 +60,12 @@ pub fn print_usage() -> Result<Option<Config>, Error> {
 
 Clone a git repository into a standard location organised by domain.
 
-E.g. https://github.com/wezm/grab.git would be cloned to:
+E.g. https://github.com/wezm/git-grab.git would be cloned to:
 
     $GRAB_HOME/github.com/wezm/grab
 
 USAGE:
-    grab [OPTIONS] [URL]...
+    git grab [OPTIONS] [URL]...
 
 ARGS:
     <URL>...
@@ -96,7 +96,7 @@ AUTHOR
     {}
 
 SEE ALSO
-    Project source code: https://github.com/wezm/grab ",
+    Project source code: https://github.com/wezm/git-grab ",
         version_string(),
         env!("CARGO_PKG_AUTHORS")
     );
