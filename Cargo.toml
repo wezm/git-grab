@@ -12,7 +12,7 @@ repository = "https://github.com/wezm/git-grab.git"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 
-description = "A small tool to clone git repositories to a standard location, ordered by domain name and path"
+description = "A small tool to clone git repositories to a standard location, organsised by domain name and path"
 keywords = ["git", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 

@@ -4,7 +4,7 @@
 </h1>
 
 <div align="center">
-  <strong>A small tool to clone git repositories to a standard location, ordered
+  <strong>A small tool to clone git repositories to a standard location, organised
   by domain name and path. Runs on BSD, Linux, macOS, Windows, and
   more.</strong>
 </div>
