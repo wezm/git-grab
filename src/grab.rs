@@ -10,25 +10,7 @@ const HTTPS: &str = "https://";
 
 pub fn grab(home: &Path, url: OsString) -> Result<(), Error> {
     let str = url.to_str().ok_or_else(|| "invalid url")?;
-    let url: Url = str.parse().or_else(|err| match err {
-        ParseError::RelativeUrlWithoutBase => {
-            if looks_like_ssh_url(str) {
-                // Might be an ssh style URL like git@github.com:wezm/grab.git
-                let newstr = normalise_ssh_url(str)
-                    .ok_or_else(|| format!("unable to normalise '{}'", str))?;
-                newstr.parse().map_err(Error::from)
-            } else if str.contains('.') {
-                // might be a URL without a scheme like github.com/wezm/grab
-                let mut newstr = String::with_capacity(HTTPS.len() + str.len());
-                newstr.push_str(HTTPS);
-                newstr.push_str(str);
-                newstr.parse().map_err(Error::from)
-            } else {
-                Err(format!("'{}': {}", str, err).into())
-            }
-        }
-        _ => Err(format!("'{}': {}", str, err).into()),
-    })?;
+    let url: Url = parse_url(str)?;
 
     let dest_path = clone_path(home, &url)?;
     println!("Grab {} to {}", url, dest_path.display());
@@ -42,6 +24,28 @@ pub fn grab(home: &Path, url: OsString) -> Result<(), Error> {
             None => String::from("git killed by signal"),
         })
         .map_err(|err| err.into())
+}
+
+fn parse_url(url: &str) -> Result<Url, Error> {
+    url.parse().or_else(|err| match err {
+        ParseError::RelativeUrlWithoutBase => {
+            if looks_like_ssh_url(url) {
+                // Might be an ssh style URL like git@github.com:wezm/grab.git
+                let newstr = normalise_ssh_url(url)
+                    .ok_or_else(|| format!("unable to normalise '{}'", url))?;
+                newstr.parse().map_err(Error::from)
+            } else if url.contains('.') {
+                // might be a URL without a scheme like github.com/wezm/grab
+                let mut newstr = String::with_capacity(HTTPS.len() + url.len());
+                newstr.push_str(HTTPS);
+                newstr.push_str(url);
+                newstr.parse().map_err(Error::from)
+            } else {
+                Err(format!("'{}': {}", url, err).into())
+            }
+        }
+        _ => Err(format!("'{}': {}", url, err).into()),
+    })
 }
 
 fn clone(url: &Url, dest_path: &Path) -> Result<ExitStatus, io::Error> {
@@ -70,8 +74,7 @@ fn clone_path(home: &Path, url: &Url) -> Result<PathBuf, Error> {
 
 fn looks_like_ssh_url(url: &str) -> bool {
     // if there's an @ before the : maybe it's an ssh url
-    split_once(url, ':')
-        .map_or(false, |(before, _after)| before.contains('@'))
+    split_once(url, ':').map_or(false, |(before, _after)| before.contains('@'))
 }
 
 fn normalise_ssh_url(url: &str) -> Option<String> {
@@ -131,16 +134,44 @@ mod tests {
         assert_eq!(split_once("", ':'), None);
     }
 
-    /*
-    https://github.com/influxdata/influxdb2-sample-data.git
-    https://github.com/influxdata/influxdb2-sample-data
-    https://github.com/nushell/nushell
-    github.com/zesterer/tao
-    github.com/mdg/leema
-    github.com/alec-deason/wasm_plugin
-    github.com/bytecodealliance/wasmtime
-    github.com/denoland/deno/
-    github.com/denoland/deno
-    git@github.com:wezm/grab.git
-    */
+    #[test]
+    fn test_clone_path() {
+        let home = Path::new("/src");
+        [
+            (
+                "https://github.com/influxdata/influxdb2-sample-data.git",
+                "/src/github.com/influxdata/influxdb2-sample-data",
+            ),
+            (
+                "https://github.com/influxdata/influxdb2-sample-data",
+                "/src/github.com/influxdata/influxdb2-sample-data",
+            ),
+            ("github.com/zesterer/tao", "/src/github.com/zesterer/tao"),
+            (
+                "github.com/denoland/deno/",
+                "/src/github.com/denoland/deno/",
+            ),
+            (
+                "git@github.com:wezm/git-grab.git",
+                "/src/github.com/wezm/git-grab",
+            ),
+            ("git.sr.ht/~wezm/lobsters", "/src/git.sr.ht/~wezm/lobsters"),
+            (
+                "git@git.sr.ht:~wezm/lobsters",
+                "/src/git.sr.ht/~wezm/lobsters",
+            ),
+            (
+                "bitbucket.org/egrange/dwscript",
+                "/src/bitbucket.org/egrange/dwscript",
+            ),
+            ("git://c9x.me/qbe.git", "/src/c9x.me/qbe"),
+        ]
+        .iter()
+        .for_each(|(url, expected)| {
+            assert_eq!(
+                clone_path(home, &parse_url(url).unwrap()).unwrap(),
+                PathBuf::from(expected)
+            )
+        });
+    }
 }
