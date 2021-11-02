@@ -5,7 +5,7 @@
 
 <div align="center">
   <strong>A small tool to clone git repositories to a standard location, organised
-  by domain name and path. Runs on BSD, Linux, macOS, Windows, and
+  by domain name and path. It runs on BSD, Linux, macOS, Windows, and
   more.</strong>
 </div>
 
@@ -22,9 +22,9 @@
 
 <br>
 
-Grab clones the repo into `$GRAB_HOME/github.com/wezm/git-grab` where `GRAB_HOME`
-defaults to `~/src` if not set or supplied via the `--home` argument. For
-example:
+Git Grab clones a repo into `$GRAB_HOME`, organised by domain and path.
+`GRAB_HOME` defaults to `~/src` if not set or supplied via the `--home`
+argument. For example:
 
     $ git grab github.com/wezm/git-grab
     Grab https://github.com/wezm/git-grab to /home/wmoore/src/github.com/wezm/git-grab
