@@ -18,5 +18,5 @@ categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 home = "0.5.3"
-pico-args = "0.4.2"
-url = "2"
+pico-args = "0.5.0"
+url = "2.2.2"
