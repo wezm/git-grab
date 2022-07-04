@@ -20,7 +20,7 @@ task:
   publish_script: |
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
-      cargo build --release --target x86_64-unknown-linux-musl
+      cargo build --release --locked --target x86_64-unknown-linux-musl
       tarball="git-grab-${tag}-x86_64-unknown-linux-musl.tar.gz"
       strip target/x86_64-unknown-linux-musl/release/git-grab
       tar zcf "$tarball" -C target/x86_64-unknown-linux-musl/release git-grab
@@ -40,7 +40,7 @@ task:
   publish_script: |
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
-      cargo build --release
+      cargo build --release --locked
       tarball="git-grab-${tag}-amd64-unknown-freebsd.tar.gz"
       strip target/release/git-grab
       tar zcf "$tarball" -C target/release git-grab
@@ -59,7 +59,7 @@ task:
   publish_script: |
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
-      cargo build --release
+      cargo build --release --locked
       tarball="git-grab-${tag}-x86_64-apple-darwin.tar.gz"
       strip target/release/git-grab
       tar zcf "$tarball" -C target/release git-grab
@@ -88,7 +88,7 @@ task:
       $tag=""
     }
     if ( $tag.Length -gt 0 ) {
-      ~\.cargo\bin\cargo build --release
+      ~\.cargo\bin\cargo build --release --locked
       $tarball="git-grab-$tag-x86_64-pc-windows-msvc.zip"
       cd target\release
       strip git-grab.exe
