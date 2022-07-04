@@ -13,9 +13,9 @@ pub fn grab(home: &Path, url: OsString, dry_run: bool) -> Result<(), Error> {
     let url: Url = parse_url(str)?;
 
     let dest_path = clone_path(home, &url)?;
-    println!("Grab {} to {}", url, dest_path.display());
 
     if dry_run {
+        println!("Grab {} to {}", url, dest_path.display());
         return Ok(());
     }
 
@@ -29,6 +29,7 @@ pub fn grab(home: &Path, url: OsString, dry_run: bool) -> Result<(), Error> {
             None => String::from("git killed by signal"),
         })
         .map_err(|err| err.into())
+        .map(|()| println!("Grabbed {} to {}", url, dest_path.display()))
 }
 
 fn parse_url(url: &str) -> Result<Url, Error> {

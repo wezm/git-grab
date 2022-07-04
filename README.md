@@ -27,7 +27,6 @@ Git Grab clones a repo into `$GRAB_HOME`, organised by domain and path.
 argument. For example:
 
     $ git grab github.com/wezm/git-grab
-    Grab https://github.com/wezm/git-grab to /home/wmoore/src/github.com/wezm/git-grab
     Cloning into '/home/wmoore/src/github.com/wezm/git-grab'...
     remote: Enumerating objects: 30, done.
     remote: Counting objects: 100% (30/30), done.
@@ -35,6 +34,7 @@ argument. For example:
     remote: Total 30 (delta 9), reused 27 (delta 7), pack-reused 0
     Receiving objects: 100% (30/30), 12.50 KiB | 12.50 MiB/s, done.
     Resolving deltas: 100% (9/9), done.
+    Grabbed https://github.com/wezm/git-grab to /home/wmoore/src/github.com/wezm/git-grab
 
     $ exa --tree ~/src
     /home/wmoore/src
