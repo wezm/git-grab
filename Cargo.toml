@@ -3,7 +3,7 @@ name = "git-grab"
 authors = [
   "Wesley Moore <wes@wezm.net>"
 ]
-version = "1.0.0"
+version = "1.0.1"
 edition = "2018"
 
 homepage = "https://github.com/wezm/git-grab"
