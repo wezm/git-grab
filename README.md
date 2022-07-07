@@ -48,8 +48,10 @@ argument. For example:
                 ├── grab.rs
                 └── main.rs
 
-Download
---------
+Install
+-------
+
+### Pre-compiled Binary
 
 Pre-compiled binaries are available for a number of platforms.
 
@@ -61,6 +63,12 @@ Pre-compiled binaries are available for a number of platforms.
 Example to download and extract a binary:
 
     curl https://releases.wezm.net/git-grab/1.0.0/git-grab-1.0.0-x86_64-unknown-linux-musl.tar.gz | tar zxf -
+
+### Package Manager
+
+`git-grab` is packaged in these package managers:
+
+* Arch Linux: `git-grab`
 
 Usage
 -----
