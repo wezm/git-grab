@@ -9,12 +9,15 @@ task:
   container:
     image: debian:10-slim
     cpu: 4
+  cargo_cache:
+    folder: $HOME/.cargo/registry
+    fingerprint_script: cat Cargo.lock
   install_script:
     - apt-get update && apt-get install -y --no-install-recommends git ca-certificates curl gcc libc6-dev musl-tools
     - curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION}
     - rustup target add x86_64-unknown-linux-musl
     - mkdir ~/bin
-    - curl -L https://releases.wezm.net/upload-to-s3/0.1.10/upload-to-s3-0.1.10-x86_64-unknown-linux-musl.tar.gz | tar xzf - -C ~/bin
+    - curl -L https://releases.wezm.net/upload-to-s3/0.2.0/upload-to-s3-0.2.0-x86_64-unknown-linux-musl.tar.gz | tar xzf - -C ~/bin
   test_script:
     - cargo test
   publish_script: |
@@ -32,9 +35,12 @@ task:
   freebsd_instance:
     image_family: freebsd-13-0
     cpu: 4
+  cargo_cache:
+    folder: $HOME/.cargo/registry
+    fingerprint_script: cat Cargo.lock
   install_script:
     - pkg install -y git-lite rust
-    - fetch -o - https://releases.wezm.net/upload-to-s3/0.1.10/upload-to-s3-0.1.10-amd64-unknown-freebsd.tar.gz | tar xzf - -C /usr/local/bin
+    - fetch -o - https://releases.wezm.net/upload-to-s3/0.2.0/upload-to-s3-0.2.0-amd64-unknown-freebsd.tar.gz | tar xzf - -C /usr/local/bin
   test_script:
     - cargo test
   publish_script: |
@@ -49,18 +55,29 @@ task:
 
 task:
   name: Build (Mac OS)
-  osx_instance:
-    image: catalina-base
+  macos_instance:
+    image: ghcr.io/cirruslabs/macos-monterey-base:latest
+  env:
+    PATH: "$HOME/.cargo/bin:$HOME/bin:$PATH"
+  cargo_cache:
+    folder: $HOME/.cargo/registry
+    fingerprint_script: cat Cargo.lock
   install_script:
     - curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION}
-    - curl -L https://releases.wezm.net/upload-to-s3/0.1.10/upload-to-s3-0.1.10-x86_64-apple-darwin.tar.gz | tar xzf - -C /usr/local/bin
+    - mkdir ~/bin
+    - curl -L https://releases.wezm.net/upload-to-s3/0.2.0/upload-to-s3-0.2.0-universal-apple-darwin.tar.gz | tar xzf - -C ~/bin
+    - rustup target add x86_64-apple-darwin
   test_script:
     - cargo test
   publish_script: |
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
       cargo build --release --locked
-      tarball="git-grab-${tag}-x86_64-apple-darwin.tar.gz"
+      cargo build --release --locked --target x86_64-apple-darwin
+      mv target/release/git-grab target/release/git-grab.$CIRRUS_ARCH
+      lipo target/release/git-grab.$CIRRUS_ARCH target/x86_64-apple-darwin/release/git-grab -create -output target/release/git-grab
+      lipo -info target/release/git-grab
+      tarball="git-grab-${tag}-universal-apple-darwin.tar.gz"
       strip target/release/git-grab
       tar zcf "$tarball" -C target/release git-grab
       upload-to-s3 -b releases.wezm.net "$tarball" "git-grab/$tag/$tarball"
@@ -71,28 +88,36 @@ task:
   windows_container:
     image: cirrusci/windowsservercore:cmake
     cpu: 4
+  cargo_cache:
+    folder: $HOME/.cargo/registry
+    fingerprint_script: cat Cargo.lock
   environment:
     CIRRUS_SHELL: powershell
   install_script:
     - Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
     - .\rustup-init -y --profile minimal --default-toolchain $env:RUST_VERSION
-    - Invoke-WebRequest https://releases.wezm.net/upload-to-s3/0.1.10/upload-to-s3-0.1.10-x86_64-pc-windows-msvc.zip -OutFile upload-to-s3.zip
+    - Invoke-WebRequest https://releases.wezm.net/upload-to-s3/0.2.0/upload-to-s3-0.2.0-x86_64-pc-windows-msvc.zip -OutFile upload-to-s3.zip
     - Expand-Archive upload-to-s3.zip -DestinationPath .
     - git fetch --tags
-  test_script:
-    - ~\.cargo\bin\cargo test
+  test_script: |
+    ~\.cargo\bin\cargo test
+    if ($LASTEXITCODE) { Throw }
   publish_script: |
     try {
       $tag=$(git describe --exact-match HEAD 2>$null)
+      if ($LASTEXITCODE) { Throw }
     } catch {
       $tag=""
     }
     if ( $tag.Length -gt 0 ) {
       ~\.cargo\bin\cargo build --release --locked
+      if ($LASTEXITCODE) { Throw }
       $tarball="git-grab-$tag-x86_64-pc-windows-msvc.zip"
       cd target\release
       strip git-grab.exe
+      if ($LASTEXITCODE) { Throw }
       Compress-Archive .\git-grab.exe "$tarball"
       cd ..\..
       .\upload-to-s3 -b releases.wezm.net "target\release\$tarball" "git-grab/$tag/$tarball"
+      if ($LASTEXITCODE) { Throw }
     }
