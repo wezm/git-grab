@@ -99,20 +99,25 @@ task:
     - Invoke-WebRequest https://releases.wezm.net/upload-to-s3/0.2.0/upload-to-s3-0.2.0-x86_64-pc-windows-msvc.zip -OutFile upload-to-s3.zip
     - Expand-Archive upload-to-s3.zip -DestinationPath .
     - git fetch --tags
-  test_script:
-    - ~\.cargo\bin\cargo test
+  test_script: |
+    ~\.cargo\bin\cargo test
+    if ($LASTEXITCODE) { Throw }
   publish_script: |
     try {
       $tag=$(git describe --exact-match HEAD 2>$null)
+      if ($LASTEXITCODE) { Throw }
     } catch {
       $tag=""
     }
     if ( $tag.Length -gt 0 ) {
       ~\.cargo\bin\cargo build --release --locked
+      if ($LASTEXITCODE) { Throw }
       $tarball="git-grab-$tag-x86_64-pc-windows-msvc.zip"
       cd target\release
       strip git-grab.exe
+      if ($LASTEXITCODE) { Throw }
       Compress-Archive .\git-grab.exe "$tarball"
       cd ..\..
       .\upload-to-s3 -b releases.wezm.net "target\release\$tarball" "git-grab/$tag/$tarball"
+      if ($LASTEXITCODE) { Throw }
     }
