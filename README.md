@@ -106,7 +106,7 @@ ENVIRONMENT
 Build from Source
 -----------------
 
-**Minimum Supported Rust Version:** 1.51.0
+**Minimum Supported Rust Version:** 1.70.0
 
 `git-grab` is implemented in Rust. See the Rust website for [instructions on
 installing the toolchain][rustup].

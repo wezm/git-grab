@@ -1,13 +1,13 @@
 env:
   PATH: "$HOME/.cargo/bin:$PATH"
-  RUST_VERSION: '1.51.0' # Needs to be <= FreeBSD version
+  RUST_VERSION: '1.70.0' # Needs to be <= FreeBSD version
   AWS_ACCESS_KEY_ID: ENCRYPTED[d93099def908e5d9813218ea0c911b6e4042d8791c17b4dcd7758c16ef2da71a43683c8d3c29cf09b41a42415cc26c27]
   AWS_SECRET_ACCESS_KEY: ENCRYPTED[ac2928f856b4b3c90541ec007ab0ef88ea7e85e96fc8095dacfeebabd7ab134e3eaa3469464d54f2da0697ca0c144b3a]
 
 task:
   name: Build (Debian Linux)
   container:
-    image: debian:10-slim
+    image: debian:12-slim
     cpu: 4
   cargo_cache:
     folder: $HOME/.cargo/registry
@@ -33,7 +33,7 @@ task:
 task:
   name: Build (FreeBSD)
   freebsd_instance:
-    image_family: freebsd-13-0
+    image_family: freebsd-13-2
     cpu: 4
   cargo_cache:
     folder: $HOME/.cargo/registry
