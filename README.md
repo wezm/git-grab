@@ -69,6 +69,7 @@ Example to download and extract a binary:
 `git-grab` is packaged in these package managers:
 
 * Arch Linux: `git-grab`
+* Brew: `brew install git-grab`
 
 Usage
 -----
