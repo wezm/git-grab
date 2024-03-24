@@ -40,7 +40,7 @@ fn try_main() -> Result<i32, Error> {
 
     let mut success = true;
     for url in config.grab_urls {
-        match grab(&config.home, url, config.dry_run) {
+        match grab(&config.home, url, config.dry_run, &config.git_args) {
             Ok(()) => {}
             Err(err) => {
                 eprintln!("Error: {}", err);

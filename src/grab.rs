@@ -8,7 +8,7 @@ use crate::Error;
 
 const HTTPS: &str = "https://";
 
-pub fn grab(home: &Path, url: OsString, dry_run: bool) -> Result<(), Error> {
+pub fn grab(home: &Path, url: OsString, dry_run: bool, git_args: &[OsString]) -> Result<(), Error> {
     let str = url.to_str().ok_or_else(|| "invalid url")?;
     let url: Url = parse_url(str)?;
 
@@ -20,7 +20,7 @@ pub fn grab(home: &Path, url: OsString, dry_run: bool) -> Result<(), Error> {
     }
 
     fs::create_dir_all(&dest_path)?;
-    let status = clone(&url, &dest_path)?;
+    let status = clone(&url, &dest_path, git_args)?;
     status
         .success()
         .then(|| ())
@@ -54,10 +54,10 @@ fn parse_url(url: &str) -> Result<Url, Error> {
     })
 }
 
-fn clone(url: &Url, dest_path: &Path) -> Result<ExitStatus, io::Error> {
-    // TODO: Support other version control systems
+fn clone(url: &Url, dest_path: &Path, extra_args: &[OsString]) -> Result<ExitStatus, io::Error> {
     Command::new("git")
         .arg("clone")
+        .args(extra_args)
         .arg(url.as_str())
         .arg(dest_path)
         .status()

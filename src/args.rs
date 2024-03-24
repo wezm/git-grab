@@ -8,13 +8,26 @@ use crate::Error;
 
 pub struct Config {
     pub dry_run: bool,
-    // Path to source home
+    /// Path to source home
     pub home: PathBuf,
     pub grab_urls: Vec<OsString>,
+    /// Extra arguments to pass to git
+    pub git_args: Vec<OsString>,
 }
 
 pub fn parse_args() -> Result<Option<Config>, Error> {
-    let mut pargs = Arguments::from_env();
+    let mut args: Vec<_> = env::args_os().skip(1).collect();
+
+    // Handle '--'.
+    let (args, git_args) = if let Some(dash_dash) = args.iter().position(|arg| arg == "--") {
+        let git_args = args.split_off(dash_dash + 1);
+        args.pop(); // Drop '--'
+        (args, git_args)
+    } else {
+        (args, Vec::new())
+    };
+
+    let mut pargs = Arguments::from_vec(args);
     if pargs.contains(["-V", "--version"]) {
         return print_version();
     } else if pargs.contains(["-h", "--help"]) {
@@ -38,6 +51,7 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
         dry_run,
         home,
         grab_urls: pargs.finish(),
+        git_args,
     }))
 }
 
@@ -65,7 +79,7 @@ E.g. https://github.com/wezm/git-grab.git would be cloned to:
     $GRAB_HOME/github.com/wezm/git-grab
 
 USAGE:
-    git grab [OPTIONS] [URL]...
+    git grab [OPTIONS] [URL]... [--] [GIT OPTIONS]
 
 ARGS:
     <URL>...
@@ -87,6 +101,10 @@ OPTIONS:
 
     -V, --version
             Prints version information
+
+GIT OPTIONS:
+    Arguments after `--` will be passed to the git clone invocation.
+    This can be used supply arguments like `--recurse-submodules`.
 
 ENVIRONMENT
     GRAB_HOME
