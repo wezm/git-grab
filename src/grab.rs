@@ -9,7 +9,7 @@ use crate::Error;
 const HTTPS: &str = "https://";
 
 pub fn grab(home: &Path, url: OsString, dry_run: bool, git_args: &[OsString]) -> Result<(), Error> {
-    let str = url.to_str().ok_or_else(|| "invalid url")?;
+    let str = url.to_str().ok_or("invalid url")?;
     let url: Url = parse_url(str)?;
 
     let dest_path = clone_path(home, &url)?;
@@ -23,7 +23,7 @@ pub fn grab(home: &Path, url: OsString, dry_run: bool, git_args: &[OsString]) ->
     let status = clone(&url, &dest_path, git_args)?;
     status
         .success()
-        .then(|| ())
+        .then_some(())
         .ok_or_else(|| match status.code() {
             Some(code) => format!("git exited with status {}", code),
             None => String::from("git killed by signal"),
@@ -65,9 +65,9 @@ fn clone(url: &Url, dest_path: &Path, extra_args: &[OsString]) -> Result<ExitSta
 
 fn clone_path(home: &Path, url: &Url) -> Result<PathBuf, Error> {
     let mut path = home.to_path_buf();
-    path.push(url.host_str().ok_or_else(|| "invalid hostname")?);
+    path.push(url.host_str().ok_or("invalid hostname")?);
     url.path_segments()
-        .ok_or_else(|| "missing path in url")?
+        .ok_or("missing path in url")?
         .for_each(|seg| path.push(seg));
 
     // Strip trailing .git from clone path
