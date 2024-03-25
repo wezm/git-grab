@@ -36,7 +36,7 @@ argument. For example:
     Resolving deltas: 100% (9/9), done.
     Grabbed https://github.com/wezm/git-grab to /home/wmoore/src/github.com/wezm/git-grab
 
-    $ exa --tree ~/src
+    $ lsd --tree ~/src
     /home/wmoore/src
     └── github.com
        └── wezm
@@ -55,7 +55,7 @@ Install
 
 Pre-compiled binaries are available for a number of platforms.
 
-* [FreeBSD 13 amd64](https://releases.wezm.net/git-grab/2.0.0/git-grab-2.0.0-amd64-unknown-freebsd.tar.gz)
+* [FreeBSD 13+ amd64](https://releases.wezm.net/git-grab/2.0.0/git-grab-2.0.0-amd64-unknown-freebsd.tar.gz)
 * [Linux x86\_64](https://releases.wezm.net/git-grab/2.0.0/git-grab-2.0.0-x86_64-unknown-linux-musl.tar.gz)
 * [MacOS Universal](https://releases.wezm.net/git-grab/2.0.0/git-grab-2.0.0-universal-apple-darwin.tar.gz)
 * [Windows x86\_64](https://releases.wezm.net/git-grab/2.0.0/git-grab-2.0.0-x86_64-pc-windows-msvc.zip)
@@ -74,21 +74,25 @@ Example to download and extract a binary:
 Usage
 -----
 
+Once `git-grab` in installed you can use it via `git grab`. `git` automatically
+finds binaries named `git-*`, this also means that if you have a shell alias
+like `alias g=git`, `g grab` will also work. 
+
 ```
 USAGE:
-    git grab [OPTIONS] [URL]...
+    git grab [OPTIONS] [URL]... [--] [GIT OPTIONS]
 
 ARGS:
     <URL>...
         One or more git URLs to clone. Any URL accepted by `git` is valid.
         In addition, URLs without a scheme such as
-        github.com/wezm/git-grab are also accepted.
+        github.com/wezm/grab are also accepted.
 
 OPTIONS:
     -h, --help
             Prints help information
 
-        --home [default: ~/src]
+        --home [default: ~/src or $GRAB_HOME]
             The directory to use as "grab home", where the URLs will be
             cloned into. Overrides the GRAB_HOME environment variable if
             set.
@@ -99,10 +103,25 @@ OPTIONS:
     -V, --version
             Prints version information
 
+GIT OPTIONS:
+    Arguments after `--` will be passed to the git clone invocation.
+    This can be used supply arguments like `--recurse-submodules`.
+
 ENVIRONMENT
     GRAB_HOME
         See --home
 ```
+
+### With GitHub CLI
+
+1. Configure an alias in the GitHub CLI:
+
+       gh alias set --shell grab 'git grab "git@github.com:$1.git"'
+
+2. You can now grab a GitHub repo. For example:
+
+       gh grab wezm/git-grab
+   
 
 Build from Source
 -----------------
