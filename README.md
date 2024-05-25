@@ -70,13 +70,14 @@ Example to download and extract a binary:
 
 * Arch Linux: `git-grab`
 * Brew: `brew install git-grab`
+* Chimera Linux: `git-grab`
 
 Usage
 -----
 
 Once `git-grab` in installed you can use it via `git grab`. `git` automatically
 finds binaries named `git-*`, this also means that if you have a shell alias
-like `alias g=git`, `g grab` will also work. 
+like `alias g=git`, `g grab` will also work.
 
 ```
 USAGE:
@@ -91,6 +92,9 @@ ARGS:
 OPTIONS:
     -h, --help
             Prints help information
+
+    -c, --clipboard
+            Paste a URL to clone from the clipboard.
 
         --home [default: ~/src or $GRAB_HOME]
             The directory to use as "grab home", where the URLs will be
@@ -121,7 +125,6 @@ ENVIRONMENT
 2. You can now grab a GitHub repo. For example:
 
        gh grab wezm/git-grab
-   
 
 Build from Source
 -----------------
@@ -130,6 +133,18 @@ Build from Source
 
 `git-grab` is implemented in Rust. See the Rust website for [instructions on
 installing the toolchain][rustup].
+
+**Compile-time Options (Cargo Features)**
+
+`git-grab` supports the following compile-time options:
+
+* `clipboard`: enable support for cloning the URL on the clipboard
+  * This feature is on by default
+  * On UNIX and UNIX-like systems such as BSD and Linux one of the following
+    tools must be installed:
+    * [wl-clipboard](https://github.com/bugaevc/wl-clipboard) (Wayland)
+    * [xclip](https://github.com/astrand/xclip) or
+      [xsel](https://vergenet.net/~conrad/software/xsel/) (X11)
 
 ### From Git Checkout or Release Tarball
 
@@ -152,6 +167,8 @@ A small comparison:
 | Dependencies         | None                                   | git                    |
 | Progress Information | No                                     | Yes, provided by `git` |
 
+`git-grab` incorporates clipboard code from [clipp] by [bendn] under the MIT licence.
+
 Licence
 -------
 
@@ -163,3 +180,5 @@ This project is dual licenced under either of:
 at your option.
 
 [rustup]: https://www.rust-lang.org/tools/install
+[clipp]: https://github.com/bend-n/clipp
+[bendn]: https://github.com/bend-n
