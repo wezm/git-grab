@@ -58,11 +58,11 @@ pub struct PbCopy {}
 #[cfg(target_os = "macos")]
 impl Clipboard for PbCopy {
     fn copy(&self, text: &str) -> io::Result<()> {
-        c!(pbcopy w).put(text)
+        c!("pbcopy").put(text)
     }
 
     fn paste(&self) -> io::Result<String> {
-        c!(pbcopy r).eat()
+        c!("pbpaste" "-Prefer" "txt").eat()
     }
 }
 
