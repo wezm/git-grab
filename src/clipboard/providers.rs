@@ -129,16 +129,18 @@ impl Clipboard for Klipper {
     }
 }
 
-#[cfg(target_family = "windows")]
+#[cfg(windows)]
 struct Windows {}
-#[cfg(target_family = "windows")]
+#[cfg(windows)]
 impl Clipboard for Windows {
     fn copy(&self, text: &str) -> io::Result<()> {
-        clipboard_win::set_clipboard_string(text)?
+        clipboard_win::set_clipboard_string(text)
+            .map_err(|err| io::Error::new(io::ErrorKind::Other, err.to_string()))
     }
 
     fn paste(&self) -> io::Result<String> {
-        clipboard_win::get_clipboard_string()?
+        clipboard_win::get_clipboard_string()
+            .map_err(|err| io::Error::new(io::ErrorKind::Other, err.to_string()))
     }
 }
 
@@ -155,6 +157,7 @@ impl Clipboard for Wsl {
     }
 }
 
+#[cfg(not(any(windows, target_os = "macos")))]
 fn has(c: &str) -> bool {
     c!("which")
         .arg(c)
@@ -170,16 +173,21 @@ fn wsl() -> bool {
         .map_or(false, |s| s.to_lowercase().contains("microsoft"))
 }
 
+#[cfg(windows)]
 pub fn provide() -> io::Result<Box<dyn Clipboard>> {
-    #[cfg(target_family = "windows")]
-    return get::<Windows>();
-    #[cfg(target_os = "macos")]
-    return get::<PbCopy>();
+    return Ok(Box::new(Windows {}));
+}
 
+#[cfg(target_os = "macos")]
+pub fn provide() -> io::Result<Box<dyn Clipboard>> {
+    return Ok(Box::new(PbCopy {}));
+}
+
+#[cfg(not(any(windows, target_os = "macos")))]
+pub fn provide() -> io::Result<Box<dyn Clipboard>> {
     if wsl() {
-        return Ok(Box::new(Wsl {}));
-    }
-    if std::env::var_os("WAYLAND_DISPLAY").is_some() && has("wl-copy") {
+        Ok(Box::new(Wsl {}))
+    } else if std::env::var_os("WAYLAND_DISPLAY").is_some() {
         Ok(Box::new(Wayland {}))
     } else if has("xsel") {
         Ok(Box::new(XSel {}))
@@ -213,6 +221,7 @@ mod tests {
 
     #[test]
     #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(not(any(windows, target_os = "macos")))]
     fn xclip() {
         if has("xclip") {
             test_provider(XClip {});
@@ -220,7 +229,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(not(any(windows, target_os = "macos")))]
     fn xsel() {
         if has("xsel") {
             test_provider(XSel {});
@@ -228,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(not(any(windows, target_os = "macos")))]
     fn wayland() {
         if std::env::var_os("WAYLAND_DISPLAY").is_some() {
             test_provider(Wayland {});
@@ -236,7 +245,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(all(unix, not(target_os = "macos")))]
+    #[cfg(not(any(windows, target_os = "macos")))]
     fn klipper() {
         if has("klipper") {
             test_provider(Klipper {});
