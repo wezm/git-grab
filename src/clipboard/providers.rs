@@ -168,6 +168,7 @@ fn has(c: &str) -> bool {
         .map_or(false, |status| status.success())
 }
 
+#[cfg(not(any(windows, target_os = "macos")))]
 fn wsl() -> bool {
     std::fs::read_to_string("/proc/version")
         .map_or(false, |s| s.to_lowercase().contains("microsoft"))
@@ -253,16 +254,16 @@ mod tests {
     }
 
     #[test]
-    #[cfg(windows)]
-    fn windows() {
-        test_provider(Windows {});
-    }
-
-    #[test]
-    #[cfg(windows)]
+    #[cfg(not(any(windows, target_os = "macos")))]
     fn test_wsl() {
         if wsl() {
             test_provider(Wsl {});
         }
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn windows() {
+        test_provider(Windows {});
     }
 }
