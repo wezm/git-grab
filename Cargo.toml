@@ -1,8 +1,6 @@
 [package]
 name = "git-grab"
-authors = [
-  "Wesley Moore <wes@wezm.net>"
-]
+authors = ["Wesley Moore <wes@wezm.net>"]
 version = "2.1.0"
 edition = "2018"
 
@@ -12,7 +10,7 @@ repository = "https://github.com/wezm/git-grab.git"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 
-description = "A small tool to clone git repositories to a standard location, organsised by domain name and path"
+description = "A tool to clone git repositories to a standard location, organised by domain name and path"
 keywords = ["git", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 
@@ -20,3 +18,14 @@ categories = ["command-line-utilities", "development-tools"]
 home = "0.5.3"
 pico-args = "0.5.0"
 url = "2.2.2"
+
+[target.'cfg(target_family = "windows")'.dependencies]
+clipboard-win = { version = "5.3.1", optional = true }
+
+[features]
+default = ["clipboard"]
+# Ideally this would only be present on windows
+# Requires target dependant features:
+# https://github.com/rust-lang/cargo/issues/1197
+clipboard = ["dep:clipboard-win"]
+

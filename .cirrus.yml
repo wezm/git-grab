@@ -20,6 +20,7 @@ task:
     - curl -L https://releases.wezm.net/upload-to-s3/0.2.0/upload-to-s3-0.2.0-x86_64-unknown-linux-musl.tar.gz | tar xzf - -C ~/bin
   test_script:
     - cargo test
+    - cargo test --no-default-features # test that it builds without clipboard support
   publish_script: |
     tag=$(git describe --exact-match HEAD 2>/dev/null || true)
     if [ -n "$tag" ]; then
@@ -56,7 +57,7 @@ task:
 task:
   name: Build (Mac OS)
   macos_instance:
-    image: ghcr.io/cirruslabs/macos-monterey-base:latest
+    image: ghcr.io/cirruslabs/macos-sonoma-base:latest
   env:
     PATH: "$HOME/.cargo/bin:$HOME/bin:$PATH"
   cargo_cache:
