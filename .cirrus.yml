@@ -106,6 +106,7 @@ task:
     if ($LASTEXITCODE) { Throw }
   cross_script: |
     choco list --local-only
+    choco install visualstudio2022buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.ARM64"
     ~\.cargo\bin\cargo build --locked --target aarch64-pc-windows-msvc
     if ($LASTEXITCODE) { Throw }
   publish_script: |
