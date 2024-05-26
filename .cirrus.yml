@@ -95,9 +95,10 @@ task:
   environment:
     CIRRUS_SHELL: powershell
   install_script:
-    - Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
-    - .\rustup-init -y --profile minimal --default-toolchain $env:RUST_VERSION
-    - ~\.cargo\bin\rustup target add aarch64-pc-windows-msvc
+    # - Invoke-WebRequest -Uri https://win.rustup.rs/x86_64 -OutFile rustup-init.exe
+    # - .\rustup-init -y --profile minimal --default-toolchain $env:RUST_VERSION
+    # - ~\.cargo\bin\rustup target add aarch64-pc-windows-msvc
+    - winget install Rustlang.Rustup
     - Invoke-WebRequest https://releases.wezm.net/upload-to-s3/0.2.0/upload-to-s3-0.2.0-x86_64-pc-windows-msvc.zip -OutFile upload-to-s3.zip
     - Expand-Archive upload-to-s3.zip -DestinationPath .
     - git fetch --tags
