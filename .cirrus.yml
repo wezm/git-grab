@@ -105,7 +105,7 @@ task:
     ~\.cargo\bin\cargo test
     if ($LASTEXITCODE) { Throw }
   cross_script: |
-    choco list
+    choco list --local-only
     ~\.cargo\bin\cargo build --locked --target aarch64-pc-windows-msvc
     if ($LASTEXITCODE) { Throw }
   publish_script: |
