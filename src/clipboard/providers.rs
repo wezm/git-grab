@@ -1,15 +1,16 @@
 //! implements different clipboard types
 
-use std::{
-    io::{self, Read, Write},
-    process::{Command, Stdio},
-};
+use std::io;
+#[cfg(unix)]
+use std::{process::{Command, Stdio}, io::{Read, Write}};
 
 pub trait Clipboard {
+    #[allow(dead_code)]
     fn copy(&self, text: &str) -> io::Result<()>;
     fn paste(&self) -> io::Result<String>;
 }
 
+#[cfg(unix)]
 macro_rules! c {
     ($p:ident $($args:ident)+) => {
         Command::new(stringify!($p)).args([$(stringify!($args),)+])
@@ -23,10 +24,11 @@ macro_rules! c {
     }
 }
 
+#[cfg(unix)]
 trait Eat {
     fn eat(&mut self) -> io::Result<String>;
 }
-
+#[cfg(unix)]
 impl Eat for Command {
     fn eat(&mut self) -> io::Result<String> {
         let mut s = String::new();
@@ -40,10 +42,11 @@ impl Eat for Command {
     }
 }
 
+#[cfg(unix)]
 trait Put {
     fn put(&mut self, s: impl AsRef<[u8]>) -> io::Result<()>;
 }
-
+#[cfg(unix)]
 impl Put for Command {
     fn put(&mut self, s: impl AsRef<[u8]>) -> io::Result<()> {
         let mut ch = self.stdin(Stdio::piped()).spawn()?;
@@ -66,7 +69,9 @@ impl Clipboard for PbCopy {
     }
 }
 
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 pub struct XClip {}
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 impl Clipboard for XClip {
     fn copy(&self, text: &str) -> io::Result<()> {
         c!("xclip" "-selection" "c").put(text)
@@ -80,7 +85,9 @@ impl Clipboard for XClip {
     }
 }
 
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 pub struct XSel {}
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 impl Clipboard for XSel {
     fn copy(&self, text: &str) -> io::Result<()> {
         c!("xsel" "-b" "-i").put(text)
@@ -91,7 +98,9 @@ impl Clipboard for XSel {
     }
 }
 
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 struct Wayland {}
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 impl Clipboard for Wayland {
     fn copy(&self, text: &str) -> io::Result<()> {
         match text {
@@ -114,7 +123,10 @@ impl Clipboard for Wayland {
     }
 }
 
+
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 struct Klipper {}
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 impl Clipboard for Klipper {
     fn copy(&self, text: &str) -> io::Result<()> {
         c!("qdbus" "org.kde.klipper" "/klipper" "setClipboardContents").arg(text);
@@ -144,7 +156,9 @@ impl Clipboard for Windows {
     }
 }
 
+#[cfg(target_os = "linux")]
 struct Wsl {}
+#[cfg(target_os = "linux")]
 impl Clipboard for Wsl {
     fn copy(&self, text: &str) -> io::Result<()> {
         c!("clip.exe").put(text)
@@ -184,7 +198,7 @@ pub fn provide() -> io::Result<Box<dyn Clipboard>> {
     return Ok(Box::new(PbCopy {}));
 }
 
-#[cfg(not(any(windows, target_os = "macos")))]
+#[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
 pub fn provide() -> io::Result<Box<dyn Clipboard>> {
     if wsl() {
         Ok(Box::new(Wsl {}))
@@ -230,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
     fn xsel() {
         if has("xsel") {
             test_provider(XSel {});
@@ -238,7 +252,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
     fn wayland() {
         if std::env::var_os("WAYLAND_DISPLAY").is_some() {
             test_provider(Wayland {});
@@ -246,7 +260,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(not(any(windows, target_os = "macos", target_os = "ios", target_os = "android")))]
     fn klipper() {
         if has("klipper") {
             test_provider(Klipper {});
@@ -254,7 +268,7 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(target_os = "linux")]
     fn test_wsl() {
         if wsl() {
             test_provider(Wsl {});
