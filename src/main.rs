@@ -59,15 +59,27 @@ fn try_main() -> Result<i32, Error> {
     }
 
     let mut success = true;
+    let mut last_path = None;
     for url in config
         .grab_urls
         .into_iter()
         .chain(clipboard_url.into_iter())
     {
         match grab(&config.home, url, config.dry_run, &config.git_args) {
-            Ok(()) => {}
+            Ok(path) => {
+                last_path = Some(path);
+            }
             Err(err) => {
                 eprintln!("Error: {}", err);
+                success = false;
+            }
+        }
+    }
+
+    if success && config.copy_path {
+        if let Some(path) = last_path {
+            if let Err(err) = copy_path_to_clipboard(&path) {
+                eprintln!("Error: failed to copy path to clipboard: {}", err);
                 success = false;
             }
         }
@@ -91,4 +103,14 @@ fn clipboard_url() -> io::Result<Option<OsString>> {
 #[cfg(not(feature = "clipboard"))]
 fn clipboard_url() -> io::Result<Option<OsString>> {
     Ok(None)
+}
+
+#[cfg(feature = "clipboard")]
+fn copy_path_to_clipboard(path: &std::path::Path) -> io::Result<()> {
+    clipboard::provider()?.copy(&path.to_string_lossy())
+}
+
+#[cfg(not(feature = "clipboard"))]
+fn copy_path_to_clipboard(_path: &std::path::Path) -> io::Result<()> {
+    Ok(())
 }

@@ -8,7 +8,7 @@ use crate::Error;
 
 const HTTPS: &str = "https://";
 
-pub fn grab(home: &Path, url: OsString, dry_run: bool, git_args: &[OsString]) -> Result<(), Error> {
+pub fn grab(home: &Path, url: OsString, dry_run: bool, git_args: &[OsString]) -> Result<PathBuf, Error> {
     let str = url.to_str().ok_or("invalid url")?;
     let url: Url = parse_url(str)?;
 
@@ -16,7 +16,7 @@ pub fn grab(home: &Path, url: OsString, dry_run: bool, git_args: &[OsString]) ->
 
     if dry_run {
         println!("Grab {} to {}", url, dest_path.display());
-        return Ok(());
+        return Ok(dest_path);
     }
 
     fs::create_dir_all(&dest_path)?;
@@ -29,7 +29,10 @@ pub fn grab(home: &Path, url: OsString, dry_run: bool, git_args: &[OsString]) ->
             None => String::from("git killed by signal"),
         })
         .map_err(|err| err.into())
-        .map(|()| println!("Grabbed {} to {}", url, dest_path.display()))
+        .map(|()| {
+            println!("Grabbed {} to {}", url, dest_path.display());
+            dest_path
+        })
 }
 
 fn parse_url(url: &str) -> Result<Url, Error> {

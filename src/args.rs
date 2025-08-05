@@ -17,6 +17,8 @@ pub struct Config {
     pub home: PathBuf,
     /// Paste the URL to clone from the clipboard
     pub clipboard: bool,
+    /// Copy the local destination path to clipboard after cloning
+    pub copy_path: bool,
     pub grab_urls: Vec<OsString>,
     /// Extra arguments to pass to git
     pub git_args: Vec<OsString>,
@@ -54,8 +56,13 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
         })
         .ok_or("unable to determine home directory")?;
     let clipboard = pargs.contains(["-c", "--clipboard"]);
+    let copy_path = pargs.contains(["-p", "--copy-path"]) || env::var_os("GRAB_COPY_PATH").is_some();
 
     if clipboard && !SUPPORTS_CLIPBOARD {
+        return Err("this git-grab was not built with clipboard support.")?;
+    }
+
+    if copy_path && !SUPPORTS_CLIPBOARD {
         return Err("this git-grab was not built with clipboard support.")?;
     }
 
@@ -63,6 +70,7 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
         dry_run,
         home,
         clipboard,
+        copy_path,
         grab_urls: pargs.finish(),
         git_args,
     }))
@@ -84,6 +92,11 @@ fn version_string() -> String {
 pub fn print_usage() -> Result<Option<Config>, Error> {
     let clipboard = if SUPPORTS_CLIPBOARD {
         "\n    -c, --clipboard\n            Paste a URL to clone from the clipboard.\n"
+    } else {
+        ""
+    };
+    let copy_path = if SUPPORTS_CLIPBOARD {
+        "\n    -p, --copy-path\n            Copy the local destination path to clipboard after cloning.\n"
     } else {
         ""
     };
@@ -109,7 +122,7 @@ ARGS:
 OPTIONS:
     -h, --help
             Prints help information
-{clipboard}
+{clipboard}{copy_path}
         --home [default: ~/src or $GRAB_HOME]
             The directory to use as \"grab home\", where the URLs will be
             cloned into. Overrides the GRAB_HOME environment variable if
@@ -128,6 +141,10 @@ GIT OPTIONS:
 ENVIRONMENT
     GRAB_HOME
         See --home
+    
+    GRAB_COPY_PATH
+        If set, copy the local destination path to clipboard after cloning
+        (equivalent to --copy-path)
 
 AUTHOR
     {}
