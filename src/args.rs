@@ -58,11 +58,7 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
     let clipboard = pargs.contains(["-c", "--clipboard"]);
     let copy_path = pargs.contains(["-p", "--copy-path"]) || env::var_os("GRAB_COPY_PATH").is_some();
 
-    if clipboard && !SUPPORTS_CLIPBOARD {
-        return Err("this git-grab was not built with clipboard support.")?;
-    }
-
-    if copy_path && !SUPPORTS_CLIPBOARD {
+    if (clipboard || copy_path) && !SUPPORTS_CLIPBOARD {
         return Err("this git-grab was not built with clipboard support.")?;
     }
 
