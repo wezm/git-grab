@@ -96,6 +96,9 @@ OPTIONS:
     -c, --clipboard
             Paste a URL to clone from the clipboard.
 
+    -p, --copy-path
+            Copy the local destination path to clipboard after cloning.
+
         --home [default: ~/src or $GRAB_HOME]
             The directory to use as "grab home", where the URLs will be
             cloned into. Overrides the GRAB_HOME environment variable if
@@ -114,6 +117,10 @@ GIT OPTIONS:
 ENVIRONMENT
     GRAB_HOME
         See --home
+
+    GRAB_COPY_PATH
+        If set, copy the local destination path to clipboard after cloning
+        (equivalent to --copy-path)
 ```
 
 ### With GitHub CLI
@@ -129,7 +136,7 @@ ENVIRONMENT
 Build from Source
 -----------------
 
-**Minimum Supported Rust Version:** 1.70.0
+**Minimum Supported Rust Version:** 1.82.0
 
 `git-grab` is implemented in Rust. See the Rust website for [instructions on
 installing the toolchain][rustup].
