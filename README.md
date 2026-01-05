@@ -121,6 +121,8 @@ ENVIRONMENT
         (equivalent to --copy-path)
 ```
 
+A man page is also available in the source distribution.
+
 ### With GitHub CLI
 
 1. Configure an alias in the GitHub CLI:
