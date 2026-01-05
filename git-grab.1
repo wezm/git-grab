@@ -1,0 +1,62 @@
+.Dd Jan 5, 2026
+.Dt GIT-GRAB 1
+.Os
+.Sh NAME
+.Nm git-grab
+.Nd clone git repositories to a standard location
+.Sh SYNOPSIS
+.Nm
+.Op Fl chnpV
+.Ar URL No ...
+.Op Ar -- git arguments No ...
+.Sh DESCRIPTION
+The
+.Nm
+utility clones git repositories to a standard location, organised by domain name and path.
+Pass one or more
+.Ar URL
+to clone. Arguments for git may be supplied after
+.Ar -- .
+.Pp
+The following options are available:
+.Bl -tag -width indent
+.It Fl c, -clipboard
+Paste a URL to clone from the clipboard.
+.It Fl -home
+The directory to use as "grab home", where the URLs will be cloned into.
+Overrides the GRAB_HOME environment variable if set.
+.It Fl p, -copy-path
+Copy the local destination path to clipboard after cloning.
+If more than one URL is supplied the path of the last one is copied.
+.It Fl n, -dry-run
+Don't clone repositories, but print what would be done.
+.It Fl h, -help
+Display a help message and exit.
+.It Fl V, -version
+Display version information and exit.
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width indent
+.It Ev GRAB_HOME
+The base directory to clone into.
+If the variable
+.Ev GRAB_HOME
+is not set,
+.Pa ~/src
+is used.
+.It Ev GRAB_COPY_PATH
+If set, copy the local destination path to the clipboard after cloning.
+(equivalent to
+.Op Ar --copy-path )
+.El
+.Sh EXIT STATUS
+.Ex -std
+.El
+.Sh SEE ALSO
+.Xr git-clone 1
+.Sh HISTORY
+The
+.Nm
+utility is inspired by grab by Jeff Hodges.
+This implementation was written from scratch by Wesley Moore.
+
