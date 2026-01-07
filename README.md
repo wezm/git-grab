@@ -22,8 +22,8 @@
 
 <br>
 
-Git Grab clones a repo into `$GRAB_HOME`, organised by domain and path.
-`GRAB_HOME` defaults to `~/src` if not set or supplied via the `--home`
+Git Grab clones a repo into a local directory (based on the pattern defined by $GRAB_PATTERN).
+`GRAB_PATTERN` defaults to `~/src/{host/}{owner/}{repo}` if not set or supplied via the `--pattern`
 argument. For example:
 
     $ git grab github.com/wezm/git-grab
@@ -97,10 +97,31 @@ OPTIONS:
     -p, --copy-path
             Copy the local destination path to clipboard after cloning.
 
-        --home [default: ~/src or $GRAB_HOME]
-            The directory to use as "grab home", where the URLs will be
-            cloned into. Overrides the GRAB_HOME environment variable if
-            set.
+        --pattern <PATTERN> [default: ~/src/{host/}{owner/}{repo} or $GRAB_PATTERN]
+            Destination path pattern for grabbed repositories with optional
+            placeholders.
+
+            Placeholders are enclosed in curly braces `{}`.
+            Optionally, they may have leading and trailing `/` characters.
+            If the placeholder is present, the slashes will be added to the
+            path, otherwise they will be omitted.
+            Placeholders can be escaped by doubling the curly braces, e.g.
+            `{{owner}}` will render as `{owner}`.
+
+            The tilde `~` at the start of the pattern is expanded to the
+            home directory.
+
+            The following placeholders are supported:
+            - host  - the host part of the URL, e.g. github
+            - owner - the owner or organisation of the repo, e.g. wezm
+            - repo  - the repository name, e.g. git-grab
+            - home  - the user's home directory
+
+            Placeholders are case-sensitive, e.g. `{Repo}` or `{REPO}` is not valid.
+
+        --home (deprecated) [default: $GRAB_HOME]
+            The ~ character or {home} placeholder in the pattern expands to this
+            directory.
 
     -n, --dry-run
             Don't clone the repository but print what would be done.
@@ -110,15 +131,18 @@ OPTIONS:
 
 GIT OPTIONS:
     Arguments after `--` will be passed to the git clone invocation.
-    This can be used supply arguments like `--recurse-submodules`.
+    This can be used to supply arguments like `--recurse-submodules`.
 
 ENVIRONMENT
-    GRAB_HOME
-        See --home
+    GRAB_PATTERN
+        See --pattern
 
     GRAB_COPY_PATH
         If set, copy the local destination path to clipboard after cloning
         (equivalent to --copy-path)
+
+    GRAB_HOME (deprecated)
+        See --home
 ```
 
 A man page is also available in the source distribution.

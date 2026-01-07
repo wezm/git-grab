@@ -65,7 +65,13 @@ fn try_main() -> Result<i32, Error> {
         .into_iter()
         .chain(clipboard_url.into_iter())
     {
-        match grab(&config.home, url, config.dry_run, &config.git_args) {
+        match grab(
+            &config.pattern,
+            Some(&config.home),
+            url,
+            config.dry_run,
+            &config.git_args,
+        ) {
             Ok(path) => {
                 last_path = Some(path);
             }
