@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use pico_args::Arguments;
 
+use crate::pattern::{GrabPattern, GrabPatternParseError};
 use crate::Error;
 
 #[cfg(feature = "clipboard")]
@@ -13,7 +14,9 @@ const SUPPORTS_CLIPBOARD: bool = false;
 
 pub struct Config {
     pub dry_run: bool,
-    /// Path to source home
+    /// Pattern to use for destination paths
+    pub pattern: GrabPattern,
+    /// Home directory to use for grabs
     pub home: PathBuf,
     /// Paste the URL to clone from the clipboard
     pub clipboard: bool,
@@ -47,16 +50,39 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
     let home = pargs
         .opt_value_from_os_str("--home", parse_path)?
         .or_else(|| {
-            env::var_os("GRAB_HOME").map(PathBuf::from).or_else(|| {
-                home::home_dir().map(|mut dir| {
-                    dir.push("src");
-                    dir
-                })
-            })
+            env::var_os("GRAB_HOME")
+                .map(PathBuf::from)
+                .or_else(home::home_dir)
         })
         .ok_or("unable to determine home directory")?;
+    let pattern = pargs
+        .opt_value_from_os_str("--pattern", |s| {
+            Ok::<Option<String>, &'static str>(s.to_str().map(|s| s.to_string()))
+        })?
+        .flatten()
+        .or_else(|| {
+            env::var_os("GRAB_PATTERN")
+                .and_then(|s| s.to_str().map(|s| s.to_string()))
+                .or_else(|| Some("~/src/{host/}{owner/}{repo}".into()))
+        })
+        .map(|pattern| {
+            GrabPattern::try_parse(&pattern).map_err(|e| match e {
+                GrabPatternParseError::EmptyPlaceholder => {
+                    "invalid grab pattern: empty placeholder".into()
+                }
+                GrabPatternParseError::UnknownPlaceholder(lit) => {
+                    format!("invalid grab pattern: unknown placeholder `{}`", lit)
+                }
+                GrabPatternParseError::UnclosedPlaceholder(_) => {
+                    "invalid grab pattern: unclosed placeholder".into()
+                }
+                GrabPatternParseError::BlankPattern => "invalid grab pattern: blank pattern".into(),
+            })
+        })
+        .ok_or("unable to determine grab pattern")??;
     let clipboard = pargs.contains(["-c", "--clipboard"]);
-    let copy_path = pargs.contains(["-p", "--copy-path"]) || env::var_os("GRAB_COPY_PATH").is_some();
+    let copy_path =
+        pargs.contains(["-p", "--copy-path"]) || env::var_os("GRAB_COPY_PATH").is_some();
 
     if (clipboard || copy_path) && !SUPPORTS_CLIPBOARD {
         return Err("this git-grab was not built with clipboard support.")?;
@@ -65,6 +91,7 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
     Ok(Some(Config {
         dry_run,
         home,
+        pattern,
         clipboard,
         copy_path,
         grab_urls: pargs.finish(),
@@ -104,7 +131,7 @@ Clone a git repository into a standard location organised by domain and path.
 
 E.g. https://github.com/wezm/git-grab.git would be cloned to:
 
-    $GRAB_HOME/github.com/wezm/git-grab
+    ~/src/github.com/wezm/git-grab
 
 USAGE:
     git grab [OPTIONS] [URL]... [--] [GIT OPTIONS]
@@ -119,10 +146,32 @@ OPTIONS:
     -h, --help
             Prints help information
 {clipboard}{copy_path}
-        --home [default: ~/src or $GRAB_HOME]
-            The directory to use as \"grab home\", where the URLs will be
-            cloned into. Overrides the GRAB_HOME environment variable if
-            set.
+        --pattern <PATTERN> [default: ~/src/{{host/}}{{path/}} or $GRAB_PATTERN]
+            Destination path pattern for grabbed repositories with optional
+            placeholders.
+
+            Placeholders are enclosed in curly braces `{{}}`.
+            Optionally, they may have leading and trailing `/` characters.
+            If the placeholder is present, the slashes will be added to the
+            path, otherwise they will be omitted.
+            Placeholders can be escaped by doubling the curly braces, e.g.
+            `{{{{owner}}}}` will render as `{{owner}}`.
+
+            The tilde `~` at the start of the pattern is expanded to the
+            home directory.
+
+            The following placeholders are supported:
+            - host  - the host part of the URL, e.g. github.com
+            - path  - the path part of the URL, e.g. /wezm/git-grab
+            - owner - the owner or organisation of the repo for supported urls, e.g. wezm
+            - repo  - the repository name for supported urls, e.g. git-grab
+            - home  - the user's home directory (can be overwritten by --home or $GRAB_HOME)
+
+            Placeholders are case-sensitive, e.g. `{{Repo}}` or `{{REPO}}` is not valid.
+
+        --home (deprecated) [default: $GRAB_HOME]
+            Overrides the value that the ~ character or {{home}} placeholder
+            will be expanded to, when evaluating the pattern.
 
     -n, --dry-run
             Don't clone the repository but print what would be done.
@@ -132,15 +181,18 @@ OPTIONS:
 
 GIT OPTIONS:
     Arguments after `--` will be passed to the git clone invocation.
-    This can be used supply arguments like `--recurse-submodules`.
+    This can be used to supply arguments like `--recurse-submodules`.
 
 ENVIRONMENT
-    GRAB_HOME
-        See --home
-    
+    GRAB_PATTERN
+        See --pattern
+
     GRAB_COPY_PATH
         If set, copy the local destination path to clipboard after cloning
         (equivalent to --copy-path)
+
+    GRAB_HOME (deprecated)
+        See --home
 
 AUTHOR
     {}
