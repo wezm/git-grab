@@ -2,6 +2,7 @@ mod args;
 #[cfg(feature = "clipboard")]
 mod clipboard;
 mod grab;
+mod pattern;
 
 use std::ffi::OsString;
 use std::{io, process};

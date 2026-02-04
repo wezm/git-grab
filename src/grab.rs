@@ -4,7 +4,7 @@ use std::process::{Command, ExitStatus};
 use std::{fs, io};
 use url::{ParseError, Url};
 
-use crate::args::GrabPattern;
+use crate::pattern::{GrabPattern, GrabPatternComponent, GrabPatternPlaceholder};
 use crate::Error;
 
 const HTTPS: &str = "https://";
@@ -19,7 +19,7 @@ pub fn grab(
     let str = url.to_str().ok_or("invalid url")?;
     let url: Url = parse_url(str)?;
 
-    let dest_path = clone_path(pattern, home, &url)?;
+    let dest_path = clone_path(pattern, home, &url);
 
     if dry_run {
         println!("Grab {} to {}", url, dest_path.display());
@@ -121,15 +121,20 @@ fn extract_url_components(url: &Url) -> UrlComponents {
     }
 }
 
-fn clone_path(pattern: &GrabPattern, home: Option<&PathBuf>, url: &Url) -> Result<PathBuf, Error> {
+fn clone_path(pattern: &GrabPattern, home: Option<&PathBuf>, url: &Url) -> PathBuf {
     let mut result = String::new();
-    let mut remaining = pattern.0.as_str();
+    let mut remaining = &pattern.0[..];
 
-    if let Some(stripped) = remaining.strip_prefix('~') {
-        if let Some(home) = &home {
-            // Expand ~ to user home
-            result.push_str(&home.to_string_lossy());
-            remaining = stripped;
+    if let Some(component) = remaining.first() {
+        if let GrabPatternComponent::Literal(lit) = component {
+            if let Some(stripped) = lit.strip_prefix('~') {
+                // Expand leading ~
+                if let Some(home) = &home {
+                    result.push_str(&home.to_string_lossy());
+                    result.push_str(stripped);
+                    remaining = &remaining[1..];
+                }
+            }
         }
     }
 
@@ -138,72 +143,45 @@ fn clone_path(pattern: &GrabPattern, home: Option<&PathBuf>, url: &Url) -> Resul
     let home_string = home.as_ref().map(|p| p.to_string_lossy().to_string());
 
     while !remaining.is_empty() {
-        if let Some(rest) = remaining.strip_prefix('{') {
-            // Handle escaping braces
-            if rest.starts_with('{') {
-                let end = rest.find('}').ok_or("unclosed placeholder")?;
-                result.push_str(&rest[..end]);
-                remaining = &rest[end + 1..];
-                continue;
-            }
+        let component = &remaining[0];
 
-            let end = rest.find('}').ok_or("unclosed placeholder")?;
-            let placeholder = &rest[..end];
-            let (leading_slash, trailing_slash) =
-                (placeholder.starts_with('/'), placeholder.ends_with('/'));
-            let placeholder = placeholder.trim_matches('/');
+        match component {
+            GrabPatternComponent::Literal(lit) => result.push_str(lit),
+            GrabPatternComponent::Placeholder {
+                placeholder,
+                leading_slash,
+                trailing_slash,
+            } => {
+                let value = match placeholder {
+                    GrabPatternPlaceholder::Home => home_string.as_deref(),
+                    GrabPatternPlaceholder::Host => url_components.host.as_deref(),
+                    GrabPatternPlaceholder::Path => url_components.path.as_deref(),
+                    GrabPatternPlaceholder::Owner => url_components.owner.as_deref(),
+                    GrabPatternPlaceholder::Repo => url_components.repo.as_deref(),
+                };
 
-            let value = resolve_placeholder_value(placeholder, &url_components, &home_string)?;
-
-            if let Some(val) = value {
-                if leading_slash {
-                    result.push('/');
+                if let Some(val) = value {
+                    if *leading_slash {
+                        result.push('/');
+                    }
+                    result.push_str(val);
+                    if *trailing_slash {
+                        result.push('/');
+                    }
                 }
-                result.push_str(val);
-                if trailing_slash {
-                    result.push('/');
-                }
             }
-
-            remaining = &rest[end + 1..];
-        } else {
-            let next_brace = remaining.find('{').unwrap_or(remaining.len());
-            result.push_str(&remaining[..next_brace]);
-            remaining = &remaining[next_brace..];
         }
+
+        remaining = &remaining[1..];
     }
 
-    if result.ends_with(".git/") {
-        result.truncate(result.len() - 5);
+    let mut result = PathBuf::from(result);
+
+    if result.extension() == Some(std::ffi::OsStr::new("git")) {
+        result.set_extension("");
     }
 
-    Ok(PathBuf::from(result))
-}
-
-#[derive(Debug)]
-struct UnknownPlaceholderError(String);
-
-impl std::fmt::Display for UnknownPlaceholderError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "unknown placeholder: {}", self.0)
-    }
-}
-
-impl std::error::Error for UnknownPlaceholderError {}
-
-fn resolve_placeholder_value<'a>(
-    placeholder: &str,
-    components: &'a UrlComponents,
-    home_string: &'a Option<String>,
-) -> Result<Option<&'a str>, UnknownPlaceholderError> {
-    match placeholder {
-        "host" => Ok(components.host.as_deref()),
-        "path" => Ok(components.path.as_deref()),
-        "home" => Ok(home_string.as_deref()),
-        "owner" => Ok(components.owner.as_deref()),
-        "repo" => Ok(components.repo.as_deref()),
-        _ => Err(UnknownPlaceholderError(placeholder.to_string())),
-    }
+    result
 }
 
 fn looks_like_ssh_url(url: &str) -> bool {
@@ -435,40 +413,12 @@ mod tests {
         .for_each(|(pattern, url, expected)| {
             assert_eq!(
                 clone_path(
-                    &GrabPattern((*pattern).into()),
+                    &GrabPattern::try_parse(pattern).unwrap(),
                     None,
                     &parse_url(url).unwrap()
-                )
-                .unwrap(),
+                ),
                 PathBuf::from(expected)
             )
-        });
-    }
-
-    #[test]
-    fn test_clone_path_invalid() {
-        [
-            (
-                "{unknown}/",
-                "https://github.com/influxdata/influxdb2-sample-data.git",
-            ),
-            (
-                "{Host}/",
-                "https://github.com/influxdata/influxdb2-sample-data.git",
-            ),
-            (
-                "{HOST}/",
-                "https://github.com/influxdata/influxdb2-sample-data.git",
-            ),
-        ]
-        .iter()
-        .for_each(|(pattern, url)| {
-            let result = clone_path(
-                &GrabPattern((*pattern).into()),
-                None,
-                &parse_url(url).unwrap(),
-            );
-            assert!(result.is_err());
         });
     }
 
@@ -491,11 +441,10 @@ mod tests {
         .for_each(|(pattern, url, expected)| {
             assert_eq!(
                 clone_path(
-                    &GrabPattern((*pattern).into()),
+                    &GrabPattern::try_parse(pattern).unwrap(),
                     Some(&custom_home),
                     &parse_url(url).unwrap()
-                )
-                .unwrap(),
+                ),
                 PathBuf::from(expected)
             )
         });

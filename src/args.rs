@@ -4,20 +4,13 @@ use std::path::PathBuf;
 
 use pico_args::Arguments;
 
+use crate::pattern::{GrabPattern, GrabPatternParseError};
 use crate::Error;
 
 #[cfg(feature = "clipboard")]
 const SUPPORTS_CLIPBOARD: bool = true;
 #[cfg(not(feature = "clipboard"))]
 const SUPPORTS_CLIPBOARD: bool = false;
-
-pub struct GrabPattern(pub String);
-
-impl Default for GrabPattern {
-    fn default() -> Self {
-        Self("~/src/{host/}{path/}".into())
-    }
-}
 
 pub struct Config {
     pub dry_run: bool,
@@ -72,8 +65,21 @@ pub fn parse_args() -> Result<Option<Config>, Error> {
                 .and_then(|s| s.to_str().map(|s| s.to_string()))
                 .or_else(|| Some("~/src/{host/}{owner/}{repo}".into()))
         })
-        .map(GrabPattern)
-        .ok_or("unable to determine grab pattern")?;
+        .map(|pattern| {
+            GrabPattern::try_parse(&pattern).map_err(|e| match e {
+                GrabPatternParseError::EmptyPlaceholder => {
+                    "invalid grab pattern: empty placeholder".into()
+                }
+                GrabPatternParseError::UnknownPlaceholder(lit) => {
+                    format!("invalid grab pattern: unknown placeholder `{}`", lit)
+                }
+                GrabPatternParseError::UnclosedPlaceholder(_) => {
+                    "invalid grab pattern: unclosed placeholder".into()
+                }
+                GrabPatternParseError::BlankPattern => "invalid grab pattern: blank pattern".into(),
+            })
+        })
+        .ok_or("unable to determine grab pattern")??;
     let clipboard = pargs.contains(["-c", "--clipboard"]);
     let copy_path =
         pargs.contains(["-p", "--copy-path"]) || env::var_os("GRAB_COPY_PATH").is_some();
