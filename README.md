@@ -97,7 +97,7 @@ OPTIONS:
     -p, --copy-path
             Copy the local destination path to clipboard after cloning.
 
-        --pattern <PATTERN> [default: ~/src/{host/}{owner/}{repo} or $GRAB_PATTERN]
+        --pattern <PATTERN> [default: ~/src/{host/}{path/} or $GRAB_PATTERN]
             Destination path pattern for grabbed repositories with optional
             placeholders.
 
@@ -112,16 +112,17 @@ OPTIONS:
             home directory.
 
             The following placeholders are supported:
-            - host  - the host part of the URL, e.g. github
-            - owner - the owner or organisation of the repo, e.g. wezm
-            - repo  - the repository name, e.g. git-grab
-            - home  - the user's home directory
+            - host  - the host part of the URL, e.g. github.com
+            - path  - the path part of the URL, e.g. /wezm/git-grab
+            - owner - the owner or organisation of the repo for supported urls, e.g. wezm
+            - repo  - the repository name for supported urls, e.g. git-grab
+            - home  - the user's home directory (can be overwritten by --home or $GRAB_HOME)
 
             Placeholders are case-sensitive, e.g. `{Repo}` or `{REPO}` is not valid.
 
         --home (deprecated) [default: $GRAB_HOME]
-            The ~ character or {home} placeholder in the pattern expands to this
-            directory.
+            Overrides the value that the ~ character or {{home}} placeholder
+            will be expanded to, when evaluating the pattern.
 
     -n, --dry-run
             Don't clone the repository but print what would be done.

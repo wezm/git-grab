@@ -74,6 +74,7 @@ fn clone(url: &Url, dest_path: &Path, extra_args: &[OsString]) -> Result<ExitSta
 }
 
 struct UrlComponents {
+    path: Option<String>,
     host: Option<String>,
     owner: Option<String>,
     repo: Option<String>,
@@ -81,6 +82,11 @@ struct UrlComponents {
 
 fn extract_url_components(url: &Url) -> UrlComponents {
     let host = url.host_str().map(|s| s.to_string());
+
+    let path = url
+        .path_segments()
+        .map(|segments| segments.collect::<Vec<_>>().join("/"));
+
     let segments: Vec<&str> = url.path_segments().map_or(Vec::new(), |s| s.collect());
 
     let (owner, repo) = if segments.len() >= 2
@@ -94,10 +100,6 @@ fn extract_url_components(url: &Url) -> UrlComponents {
         let owner = segments.get(0).map(|s| s.to_string());
         let repo = segments.get(1).map(|s| s.to_string());
         (owner, repo)
-    } else if !segments.is_empty() {
-        // Other hosts - just use first segment as repo
-        let repo = segments.get(0).map(|s| s.to_string());
-        (None, repo)
     } else {
         (None, None)
     };
@@ -111,7 +113,12 @@ fn extract_url_components(url: &Url) -> UrlComponents {
         }
     });
 
-    UrlComponents { host, owner, repo }
+    UrlComponents {
+        path,
+        host,
+        owner,
+        repo,
+    }
 }
 
 fn clone_path(pattern: &GrabPattern, home: Option<&PathBuf>, url: &Url) -> Result<PathBuf, Error> {
@@ -166,6 +173,10 @@ fn clone_path(pattern: &GrabPattern, home: Option<&PathBuf>, url: &Url) -> Resul
         }
     }
 
+    if result.ends_with(".git/") {
+        result.truncate(result.len() - 5);
+    }
+
     Ok(PathBuf::from(result))
 }
 
@@ -187,6 +198,7 @@ fn resolve_placeholder_value<'a>(
 ) -> Result<Option<&'a str>, UnknownPlaceholderError> {
     match placeholder {
         "host" => Ok(components.host.as_deref()),
+        "path" => Ok(components.path.as_deref()),
         "home" => Ok(home_string.as_deref()),
         "owner" => Ok(components.owner.as_deref()),
         "repo" => Ok(components.repo.as_deref()),
@@ -260,6 +272,53 @@ mod tests {
     #[test]
     fn test_clone_path_valid() {
         [
+            // `/src/{host/}{path/}` pattern (default)
+            (
+                "/src/{host/}{path/}",
+                "https://github.com/influxdata/influxdb2-sample-data.git",
+                "/src/github.com/influxdata/influxdb2-sample-data",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "https://github.com/influxdata/influxdb2-sample-data",
+                "/src/github.com/influxdata/influxdb2-sample-data",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "github.com/zesterer/tao",
+                "/src/github.com/zesterer/tao",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "github.com/denoland/deno/",
+                "/src/github.com/denoland/deno/",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "git@github.com:wezm/git-grab.git",
+                "/src/github.com/wezm/git-grab",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "git.sr.ht/~wezm/lobsters",
+                "/src/git.sr.ht/~wezm/lobsters",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "git@git.sr.ht:~wezm/lobsters",
+                "/src/git.sr.ht/~wezm/lobsters",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "bitbucket.org/egrange/dwscript",
+                "/src/bitbucket.org/egrange/dwscript",
+            ),
+            (
+                "/src/{host/}{path/}",
+                "git://c9x.me/qbe.git",
+                "/src/c9x.me/qbe",
+            ),
+            // `/src/{host/}{owner/}{repo}` pattern
             (
                 "/src/{host/}{owner/}{repo}",
                 "https://github.com/influxdata/influxdb2-sample-data.git",
@@ -303,13 +362,14 @@ mod tests {
             (
                 "/src/{host/}{owner/}{repo}",
                 "git://c9x.me/qbe.git",
-                "/src/c9x.me/qbe",
+                "/src/c9x.me/",
             ),
             (
                 "/src/{host}/{owner}/{repo}",
                 "git://c9x.me/qbe.git",
-                "/src/c9x.me//qbe",
+                "/src/c9x.me//",
             ),
+            // Individual placeholders
             (
                 "{host}/",
                 "https://github.com/influxdata/influxdb2-sample-data.git",
@@ -329,6 +389,11 @@ mod tests {
                 "{home}/",
                 "https://github.com/influxdata/influxdb2-sample-data.git",
                 "/",
+            ),
+            (
+                "{path}/",
+                "https://github.com/influxdata/influxdb2-sample-data.git",
+                "influxdata/influxdb2-sample-data/",
             ),
             // Leading and trailing slashes
             (
@@ -356,14 +421,14 @@ mod tests {
             // Tilde not at start
             (
                 "/test/~/{repo}",
-                "https://example.com/example_repo.git",
-                "/test/~/example_repo",
+                "https://github.com/influxdata/influxdb2-sample-data.git",
+                "/test/~/influxdb2-sample-data",
             ),
             // Escaping braces
             (
                 "/test/{{owner}}/{repo}",
-                "https://example.com/example_repo.git",
-                "/test/{owner}/example_repo",
+                "https://github.com/influxdata/influxdb2-sample-data.git",
+                "/test/{owner}/influxdb2-sample-data",
             ),
         ]
         .iter()

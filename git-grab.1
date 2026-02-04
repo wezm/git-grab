@@ -27,7 +27,7 @@ Copy the local destination path to clipboard after cloning.
 .It Fl -pattern Ar PATTERN
 Destination path pattern for grabbed repositories with optional placeholders.
 Default is
-.Pa ~/src/{host/}{owner/}{repo}
+.Pa ~/src/{host/}{path/}
 or
 .Ev GRAB_PATTERN .
 .Pp
@@ -50,13 +50,16 @@ The following placeholders are supported:
 .Bl -dash -compact
 .It
 .Li host
-- the host part of the URL, e.g. github
+- the host part of the URL, e.g. github.com
+.It
+.Li path
+- the path part of the URL, e.g. /wezm/git-grab
 .It
 .Li owner
-- the owner or organisation of the repo, e.g. wezm
+- the owner or organisation of the repo for supported urls, e.g. wezm
 .It
 .Li repo
-- the repository name, e.g. git-grab
+- the repository name for supported urls, e.g. git-grab
 .It
 .Li home
 - the user's home directory
@@ -68,11 +71,11 @@ or
 .Li {REPO}
 is not valid.
 .It Fl -home Ar DIR No (deprecated)
-The
+Overrides the value that the
 .Li ~
 character or
 .Li {home}
-placeholder in the pattern expands to this directory.
+placeholder will be expanded to, when evaluating the pattern.
 Default is
 .Ev GRAB_HOME .
 .It Fl n, -dry-run
